@@ -57,6 +57,8 @@ create table emp_copy as select * from emp where 1=0;
 
 desc emp_copy;
 
+select * from emp_copy;
+
 --테이블 삭제 drop tabale 테이블이름
 drop table emp_copy;
 
