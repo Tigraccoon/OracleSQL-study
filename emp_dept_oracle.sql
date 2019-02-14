@@ -200,6 +200,99 @@ select st.studno, st.name sname, sb.subject_name, p.name pname, sb.point, l.grad
  and p.profno=sb.profno
  and st.studno = 9411;
 
+select * from emp;
+
+select empno,ename,sal from emp where sal >= 300;
+
+--distinct : 중복 데이터는 출력 안 함
+select distinct job from emp;
+
+--all : 중복 데이터 허용
+select all job from emp;
+
+--order by : 정렬 - asc(오름차순, default), desc(내림차순)
+
+select * from emp order by sal desc;
+
+--이중 정렬 가능. 앞의 조건이 우선이며 중복된 경우 후의 조건을 수행
+select * from emp order by job asc, sal desc;
+
+
+select * from emp order by hiredate asc, sal desc;
+
+
+-- alias : 별칭
+
+select ename 이름, job 직업코드, sal 급여 from emp order by 직업코드, 급여 desc;
+
+
+--where : 검색에 조건을 부여
+
+select * from emp where sal > 100 and sal < 400 order by sal desc;
+
+select * from emp
+ where sal > 100 and sal < 400
+ order by sal desc;
+
+
+-- 연산자
+--산술 연산자 : +, -, *, /
+--비교 연산자 : =, !=, <, <=, >, >=
+--논리 연산자 : and, or, not
+
+ select * from emp where not (sal between 200 and 300) order by sal desc; 
+ select * from emp where not (sal >= 200 and sal <= 300) order by sal desc;
+
+
+--SQL연산자 : in, any, all, between, like, is null, is not null
+
+select deptno, sal, ename from emp where deptno=10 or deptno=20 or deptno=30 order by deptno desc;
+
+
+--in (집합) 집합의 요소 중 한 개 이상이 해당되면 선택
+
+select deptno, sal, ename from emp where deptno in(10,20,30) order by deptno;
+
+
+--any는 in과 같으나 다양한 연산자를 사용할 수 있음
+
+select deptno, sal, ename from emp where deptno = any(10,20,30) order by deptno;
+
+select deptno, sal, ename from emp where sal > any(200,300,400) order by sal;
+
+select deptno, sal, ename from emp where sal = any(200,300,400,500,600) order by sal;
+
+select deptno, sal, ename from emp;
+
+select deptno, sal, ename from emp where ename like '김%' order by ename;
+
+select deptno, sal, ename from emp where ename like '%철%' order by ename;
+
+-- '_'를 쓰면 글자 수를 나타냄
+
+select deptno, sal, ename from emp where ename like '_철%' order by ename;
+
+
+--커미션 null인 레코드 출력(주의 : = 을 쓰면 안 된다)
+
+select * from emp where comm is null order by deptno;
+
+
+--커미션이 null이 아닌 레코드(주의 : is not 대신 >, < 등을 쓰면 안 된다)
+
+select * from emp where comm is not null order by deptno;
+
+
+--연봉 계산 시 comm이 null인 사람은 계산이 안 되게 출력
+
+select empno, ename, sal, comm, sal*12+comm 연봉 from emp; 
+
+
+--nvl(A, B) A의 값이 null이면 B, null이 아니면 A
+
+select empno, ename, sal, comm, sal*12+nvl(comm,0) 연봉 from emp; 
+
+
 
 
 
