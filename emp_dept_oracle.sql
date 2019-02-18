@@ -293,7 +293,335 @@ select empno, ename, sal, comm, sal*12+comm 연봉 from emp;
 select empno, ename, sal, comm, sal*12+nvl(comm,0) 연봉 from emp; 
 
 
+--결합 연산자 : ||
+--결합할 내용이 날짜나 문자인 경우에는 단일 따옴표( ', " )를 붙임
+--각 사람의 급여를 검색 '누구의 급여는 얼마입니다' 컬럼명을 만들어서 출력
+
+select ename || ' 의 월급은 ' || sal || '입니다.' 월급 from emp;
+
+select ename || '의 연봉은 ' || (sal*12+nvl(comm,0)) || '입니다.' 연봉 from emp;
+
+
+--연산자 우선순위 괄호() : 연산자 우선순위에서 제일 높음
+--  1순위 : 비교 연산자, SQL연산자, 산술 연산자
+--  2순위 : not
+--  3순위 : and
+--  4순위 : or
+--  5순위 : 결합 연산자
+
+--emp 테이블에서 입사일(hiredate)이 2005년 1월 1일 이전인 사원은?
+
+select ename 이름, hiredate 입사일, deptno 부서번호 
+ from emp 
+ where hiredate <= '2005.01-01'     --년월일 구분은 . 이나 - 를 사용
+ order by 입사일;
+ 
+ 
+ --emp 테이블에서 부서번호가 20번 또는 30번인 부서에 속한 사원을 출력(이름 오름차순)
+ 
+select ename 이름, job 직책, deptno 부서번호 
+ from emp
+ where deptno in(20,30)     -- 또는 deptno = 20 or deptno = 30
+ order by 이름;
+
+select ename 이름, job 직책, deptno 부서번호 
+ from emp
+ where deptno = any(20,30)     -- 또는 deptno = 20 or deptno = 30
+ order by 이름;
+
+
+--conunt()함수 : 레코드 갯수
+
+select count(*) from emp;
+
+
+--sum() 함수 : 레코드 합계
+
+select sum(sal) from emp;
+
+
+--avg() 함수 : 레코드 평균
+--rount(A, B)함수 : A - 대상, B - 소숫점 자릿수 
+
+select round(avg(sal), 2) from emp;
+
+
+--min() 함수 : 최소값
+
+select min(sal) from emp;
+
+
+--max()함수 : 최대값
+
+select max(sal) from emp;
+
+
+--부서별 사원번호, 직원수, 급여합계, 급여평균, 최저급여
+
+select deptno 사원번호, count(*) 직원수, sum(sal) 급여합계, round(avg(sal), 2) 급여평균, min(sal) 최저급여, max(sal) 최대급여 
+ from emp  
+ group by deptno
+ order by deptno;
+
+
+--단일 행 함수
+--문자 함수
+--  chr(아스키코드) : 해당 아스키 코드값에 대한 문자 반환
+
+select chr(65) from dual;
+--dual : 가상 테이블(오라클에서는 select에서 반드시 from을 붙여야 하기 때문에 dual이라는 형식적 가상 테이블을 사용
+
+--sysdate : 현재 시간
+--MySQL에서는 now() 함수를 사용. ex) select now(); 로 from절 없이 바로 사용 가능
+
+select sysdate from dual;
+
+
+--ascii(문자) : 문자의 아스키 코드값을 반환
+
+select ascii('A') from dual;
+
+
+--concat(컬럼명, '문자열') : 컬럼에 해당하는 문자열을 붙임, 결합 연산자와 같은 역할 A || B
+
+select concat(ename, '의 직책은 ') 누구의, job 직책 from emp;
+
+select ename || '의 직책은 ' || job 직책 from emp;
+
+select concat('로미오와', '줄리엣') from dual;
+
+
+--initcap('문자열') : 시작 문자만 대문자로, 다른 문자를 소문자로 반환
+
+select initcap('asdAsd') from dual;
+
+select initcap('hello JAVA from oracle') 대문자 from dual;
+
+
+--lower('문자열'), upper('문자열') : 문자열을 소문자, 대문자로 변경
+
+select lower('Java Oracle Sql') 소문자, upper('Java Oracle Sql') 대문자 from dual;
+
+
+--lpad('문자열1', 자리수, '문자열2') : 문자열1을 자리수만큼 늘리는데 왼쪽으로 늘어난 자리수 공간에 문자열2를 채워서 반환함. 문자열 2가 생략되면 공백으로 채워짐
+
+select 'abcd', lpad('abcd', 9, '*') LPAD from dual;
+
+select 'abcd', lpad('abcd', 9) LPAD from dual;
+
+
+--rpad('문자열1', 자리수, '문자열2') : 오른쪽으로 늘림
+
+select 'abcd', rpad('abcd', 9, '*') RPAD from dual;
+
+select 'abcd', rpad('abcd', 9) RPAD from dual;
+
+
+--ltrim('문자열1', '문자열2') : 문자열1에서 문자열2를 왼쪽으로 제거한 결과값을 반환
+
+select ltrim('ABCD', 'AB') LTRIM from dual;
+
+select ltrim('            oracle java javac aa', ' ') 왼쪽공백제거 from dual;
+
+
+--rtrim('문자열1', '문자열2') : 문자열1에서 문자열2를 오른쪽으로 제거한 결과값을 반환
+
+select rtrim('ABCD', 'CD') RTRIM from dual;
+
+select rtrim('oracle java javac aa            ', ' ') 오른쪽공백제거 from dual;
+
+
+--replace('문자열1', '문자열2', '문자열3') : 문자열1 중에 있는 문자열2를 문자열3으로 바꿔서 결과를 출력
+
+select replace('Oracle Java Jsp Html', 'J', 'O') REPLACE from dual;
+
+select replace('asiancup is international festival', 'asiancup', 'worldcup') replace from dual;
+
+
+--substr('문자열', 자릿수, 갯수) : 문자열의 자리수부터 시작해서 지정된 갯수만큼 문자를 잘라내서 결과값을 반환함 *시작 인덱스 1
+
+select substr('자바개발자 과정', 4, 4) SUBSTR from dual;
+
+select ename from emp where substr(ename, 2, 1) = '철';
+
+select ename 이름 from emp where ename like '_철%';
+
+
+--instr('문자열1', '문자열2', 자리수1, 자리수2) : 자리수1 부터 자리수 2번째의 문자열 2를 찾아서 시작 위치를 반환
+
+select instr('wow-wow-wow-wow-wow', '-') wow from dual;
+-- '-'이 처음 나오는 위치
+
+select instr('wow-wow-wow-wow-wow', '-', 5, 1) wow from dual;
+-- '-'이 5번째 문자부터 시작해서 처음 나오는 하이픈의 위치
+
+
+--length('문자열') : 문자열의 길이를 반환함
+
+select length('jjjaaavvvaaa') 문자열길이 from dual;
+
+select length(rtrim('abcd     ', ' ')) from dual;
+
+
+--greatest('값1', '값2', '값3' ...) : 가장 큰 값을 반환
+
+select greatest(10, 20, 30, 40) 큰값 from dual;
+
+select greatest('a','b','asd', 'zzz') from dual;
+
+select greatest('asb','asdb','asdfgh') from dual;
+
+--least('값1', '값2', '값3' ...) : 가장 작은 값을 반환
+
+select least(10, 20, 30) 작은값 from dual;
+
+select least('10','20','30') from dual;
 
 
 
 
+--날짜 함수
+
+--sysdate : 시스템의 현재 날짜
+
+select sysdate from dual;
+
+
+--add_months(날짜 컬럼 or 날짜 데이터, 숫자) : 날짜값에 개월 수를 더해서 결과값을 반환
+
+select add_months(sysdate, 3) from dual;
+
+select add_months('2013/01/25', 5) from dual;
+
+select add_months('2013/01/25', -5) from dual;
+
+select empno 사원번호, ename 이름, hiredate 입사일, add_months(hiredate, 3) 정규직_전환일 from emp;
+
+--100일 후의 날짜
+select sysdate+100 from dual;
+
+select empno 사원번호, ename 이름, hiredate 입사일, hiredate+90 입사후90일 from emp;
+
+
+-- last_day(날짜컬럼 or 날짜데이터) : 파라미터 데이터와 같은 달의 마지막 날짜를 반환
+
+select last_day(sysdate) from dual;
+
+--입사일 이후 근무 일수
+
+select empno,ename,hiredate,round(sysdate-hiredate) from emp;
+
+--입사일 이후 근무일수가 3000일 이하인 직원
+
+select empno 사원번호, ename 이름, hiredate 입사일, round(sysdate-hiredate) 근무일수 
+ from emp 
+ where sysdate-hiredate < 3000
+ order by 근무일수;
+ 
+ 
+ --SQL 실행순서 : from -> where -> select -> order by    즉 where절에서 별칭을 사용하면 에러
+ 
+ 
+ --살아온 일수
+ 
+select studno, name, birthday, round(sysdate-birthday) from student;
+ 
+ --살아온 달
+ 
+select studno, name, birthday, round(round(sysdate-birthday) /30) from student;
+ 
+ 
+ --months_between(날짜컬럼1 or 날짜데이터1, 날짜컬럼2 or 날짜데이터2) : 두 날짜 사이의 개월 수를 반환
+ 
+select months_between('2013/05/25', '2013/01/24') from dual;
+ 
+ --살아온  일수
+ 
+select months_between(sysdate, '1994/08/01') from dual;
+ 
+--정확환 살아온 달 계산
+select studno, name, birthday, round(round(sysdate-birthday) /30), round(months_between(sysdate,birthday)) from student;
+
+
+--next_day(날짜컬럼 or 날짜데이터, 숫자 or 요일) : 날짜데이터 이후의 날짜 중에서 숫자 or 요일로 명시된 첫 번째 날짜를 반환함
+
+--지금 날짜를 기준으로 돌아오는 토요일은 몇 일?
+ select next_day(sysdate, '토') from dual;
+ 
+ 
+ --문자 변환 함수 : to_char(날짜컬럼 or 날짜데이터, '??')
+ -- '??'에 들어갈 수 있는 값
+ -- 1) d : 주중의 일(1~7)
+ -- 2) day : 일을 서술형 이름으로 표시
+ -- 3) dd : 1~31 형태로 일을 표시
+ -- 4) mm : 01~12 형태로 월을 표시
+ -- 5) month, mon : 월을 서술형 이름으로 표시
+ -- 6) yy : 뒤의 두자리 연도
+ -- 7) yyyy : 네자리 연도
+ -- 8) dd-mm-yy : 일-월-연도 or yyyy-mm-dd : 연도-월-일
+ -- 9) hh, hh12, hh24 : 시간
+ -- 10) mi : 0~59 형태로 분
+ -- 11) ss : 0~59 형태로 초
+ -- 12) am, pm : 오전, 오후
+ 
+ select to_char(sysdate, 'yyyy-mm-dd am hh:mi:ss day') from dual;
+ 
+ 
+ --숫자 변환 함수 : to_number('숫자형태의 문자열')
+ 
+ select to_number('100') from dual;
+ 
+ 
+ --날짜 변환 함수 : to_date('날짜 형태의 문자열', '날짜 변환 포맷')
+ 
+ select to_date('2019-02-19', 'yyyy-mm-dd') 결과값 from dual;
+ 
+ 
+ --시스템 함수 : user - 현재 오라클에 접속중인 사용자를 반환
+ 
+ select user from dual;
+ 
+ 
+ --숫자 함수
+ 
+ -- trunc(숫자1, 자릿수) : 숫자1을 소숫점 자리수에서 절사
+ 
+ -- round(숫자, 자릿수) : 숫자를 소숫점 자리수에서 반올림
+ 
+ -- ceil(숫자) : 버림
+ 
+ --각 직원의 이름과 근속연수를 볼 때 근속연수는 연단위 버림
+ 
+ select ename, trunc((sysdate-hiredate)/365) 근속연수 from emp;
+ 
+ select ename, ceil((sysdate-hiredate)/365) 근속연수 from emp;
+ 
+ select ename, round((sysdate-hiredate)/365) 근속연수 from emp;
+ 
+ 
+ --일반 함수
+ --nvl(컬럼, 치환할 값) : 컬럼의 값이 null이면 다른 값으로 치환(대체) 함수
+ 
+ select deptno 학과, name 이름, pay 급여, bonus 보너스, (pay*12+nvl(bonus, 0)) 연봉 
+ from professor 
+ where deptno = 101;
+ 
+ 
+ -- decode(A, B, A==B일 때의 값, A<>B 일 때의 값) : A<>B 일때의 값을 생략하면 null로 처리됨, decode 함수의 매개번수의 갯수는 다중 조건에 의해 늘어날 수 있음
+ -- 간단한 join 느낌
+ 
+ select name 이름, deptno 학과, decode(deptno, 101, '컴퓨터 공학과') 학과명 
+ from professor;
+ 
+ select name 이름, deptno 학과, decode(deptno, 101, '컴퓨터 공학과', '기타 학과') 학과명 
+ from professor;
+ 
+ select name 이름, deptno 학과, decode(deptno, 101, '컴퓨터 공학과', 102, '멀티미디어 공학과', 103, '소프트웨어 공학과', 201, '전자공학과', '기타 학과') 학과명 
+ from professor;
+ 
+ select empno 사번, ename 이름, decode(deptno, 10, '경리팀', 
+                                                                    20, '연구팀',
+                                                                    30, '총무팀',
+                                                                    40, '전산팀', '기타팀') 소속부서
+ from emp;
+ 
