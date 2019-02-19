@@ -625,3 +625,190 @@ select studno, name, birthday, round(round(sysdate-birthday) /30), round(months_
                                                                     40, '전산팀', '기타팀') 소속부서
  from emp;
  
+ 
+ select s.name, s.deptno1, d.dname 
+  from student s, department d
+  where s.deptno1=d.deptno;
+ 
+ select * from department;
+ 
+ select * from student;
+ 
+ select * from professor;
+ 
+ 
+ -- join
+ 
+ select s.name 학생이름, d.dname 학과, p.name 지도교수 
+ from student s, department d, professor p 
+ where s.deptno1 = d.deptno and s.profno = p.profno;
+ 
+ 
+ -- view : 가상의 테이블
+ 
+ create or replace view student_v as 
+ select s.name 학생이름, d.dname 학과, p.name 지도교수 
+ from student s, department d, professor p 
+ where s.deptno1 = d.deptno and s.profno = p.profno;
+ 
+ --view를 테이블 처럼 사용 가능
+ 
+ select * from student_v;
+ 
+ --아래와 마찬가지
+ 
+select * from ( select s.name 학생이름, d.dname 학과, p.name 지도교수 
+ from student s, department d, professor p 
+ where s.deptno1 = d.deptno and s.profno = p.profno); --서브쿼리
+ 
+ --view를 쓰는 이유는 복잡한 select문을 간단히 하고자 함
+ --java code에 쓸 때 select * from student_v; 를 사용하면 되기 때문에 코딩이 간략해지며 통신량이 줄어듦
+ --코드가 노출되어도 조금 더 보안에 유리함
+ --단, 속도가 약간 느려짐..(테이블인지 뷰인지 먼저 검사한 후 원본에서 query문을 가져와 실행하기 때문)
+ --저장 프로시져를 쓰면 더 줄일 수 있음!
+ 
+ 
+ --종류
+ --cross 조인(Cartesian Product, 카다지언 곱)
+ -- 2개 이상의 테이블이 조인될 때 조인 조건을 주지 않는 것. 즉 where 절에서 공통 컬럼에 의한 결합이 발생하지 않아서 두 테이블 간의 조합 가능한 모든 경우의 수를 계산하여 결과를 산출하는 조인 대상
+ -- 엄밀한 의미에서 조인은 아님.
+ 
+ select e.ename, d.dname 
+ from emp e, dept d;
+ 
+ 
+ --내부 조인(inner join, 동등 조인, Equi join)
+ -- 가장 일반적인 형태, where절에 사용된 공통 컬럼들이 동등 연산자( = ) 에 의해 비교되는 조인 대상
+ 
+ 
+ --self join : 참조해야 할 컬럼이 자신의 테이블에 있는 다른 컬럼인 경우에 사용하는 조인. 반드시 테이블에 대한 별칭을 써야 함.
+ 
+ select a.empno 사번, a.ename 이름, b.empno 매니저사번, b.ename 매니저 
+ from emp a, emp b 
+ where a.mgr = b.empno;
+ 
+ 
+ --외부 (outer)조인 대상 : 한 쪽 테이블에는 해당 데이터가 존재하고 다른 쪽 테이블에는 데이터가 존재하지 않을 경우 몯ㄴ 데이터를 조회하는 조인
+ -- 조회 조건에서 (+)기호를 사용하는 조인
+ -- 데이터가 존재하지 않는 테이블의 조인 조건에 (+) 붙임
+ -- *주의 : 테이블에 (+)를 붙이는게 아님, (+)가 붙은 컬럼과는 in 연산자를 함께 사용할 수 없음!, (+)가 붙은 컬럼과는 서브쿼리를 같이 사용할 수 없음!
+ 
+ select s.name, p.name 
+ from student s, professor p 
+ where s.profno = p.profno(+);
+ 
+ 
+ --ANSI 조인 : 새로운 국제 표준에 따른 조인, Oracle 9i부터 지원
+  -- 내부 조인 : inner join 사용
+  --    - where 대신 on 사용(inner 생략 가능!)
+ select e.empno, d.dname 
+ from emp e inner join dept d
+ on e.deptno=d.deptno;
+ 
+ --     - where 절 대신 using 사용 가능(참조하는 컬럼이 동일한 경우에만 사용)
+  select e.empno, d.dname 
+ from emp e inner join dept d
+ using (deptno);
+ 
+ 
+ select s.name, s.deptno1, d.dname 
+ from student s, department d 
+ where s.deptno1 = d.deptno;
+ 
+ 
+ --외부 조인 : [left | right | full] outer join 사용
+ -- 데이터가 있는 테이블편을 기준으로 left 또는 right를 붙임
+ 
+ select s.name sname, p.name pname 
+ from student s left outer join professor p --student가 오른쪽에 있으면 right를 씀
+ on s.profno = p.profno 
+ order by sname;
+ 
+ 
+ --지도 교수가 없는 학생
+ 
+  select s.name sname, p.name pname 
+ from student s, professor p
+ where s.profno = p.profno(+) 
+ order by sname;
+ 
+ --지도 학생이 없는 교수
+ 
+ select s.name sname,  p.name pname 
+ from student s, professor p
+ where s.profno(+) = p.profno 
+ order by sname;
+ 
+ --위 모두를 출력하고 싶을 땐, 양 쪽 모두에 (+)를 붙일 순 없다.
+ --ANSI에서는 full outer join을 사용하면 됌
+ 
+  select s.name sname, p.name pname 
+ from student s full outer join professor p 
+ on s.profno = p.profno 
+ order by sname;
+ 
+ 
+ --테이블 조인
+ --상품 테이블
+ 
+ drop table product;
+ 
+ 
+ create table product (
+ product_code varchar2(20) not null primary key,
+ product_name varchar2(50) not null,
+ price number default 0,
+ company varchar2(50),
+ make_date date default sysdate
+ );
+ 
+ desc product;
+ 
+ select * from product;
+ 
+ insert into product values('A1','아이퐁',900000,'애풀','2016-09-01');
+ insert into product values('A2','갤럭시 노투',9000000,'샘숭','2018-08-01');
+ insert into product values('A3','갤럭시S19',1200000,'샘숭','2019-01-01');
+ 
+ 
+ --판매 테이블
+ 
+ --references 테이블명(컬럼) : foreign key(외래키)
+ 
+ create table product_sales (
+ product_code varchar2(20) not null references product(product_code),
+ amount number default 0
+ );
+ 
+ desc product_sales;
+ 
+ insert into product_sales values('A1',100);
+ insert into product_sales values('A2',200);
+ insert into product_sales values('A3',300);
+ 
+ select * from product_sales;
+ 
+ commit;
+ 
+ insert into product_sales values('A4',300);
+ 
+ --drop table product_sales;
+ 
+ 
+ select p.product_code, p.product_name, p.company, p.price, s.amount, p.price*s.amount money
+ from product p, product_sales s
+ where p.product_code = s.product_code;
+ 
+ --위 select문을 view를 활용하여 구현
+ 
+ create or replace view product_sales_v 
+ as select p.product_code, p.product_name, p.company, p.price, s.amount, p.price*s.amount money
+ from product p, product_sales s
+ where p.product_code = s.product_code;
+ 
+ --뷰를 테이블 처럼 사용할 수 있음!
+ select * from product_sales_v;
+ 
+ select * from product_sales_v where company = '샘숭';
+ 
+ 
