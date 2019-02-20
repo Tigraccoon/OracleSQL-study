@@ -81,11 +81,11 @@ select e.empno, d.dname
  --Oracle
  select e.ename 이름, e.deptno 부서번호, d.dname 부서명, e.sal*12+nvl(e.comm,0) 급여 
  from emp e, dept d
- where e.deptno = d.deptno;
+ where e.deptno(+) = d.deptno;
  
  --ANSI
  select e.ename 이름, e.deptno 부서번호, d.dname 부서명, e.sal*12+nvl(e.comm,0) 급여 
- from emp e join dept d 
+ from emp e full outer join dept d 
  on e.deptno = d.deptno;
  
  
@@ -95,9 +95,21 @@ select e.empno, d.dname
  --Oracle
  select a.ename || '의 매니저는 ' || b.ename || '이다.' 매니저는 
  from emp a, emp b 
- where a.mgr = b.empno;
+ where a.mgr = b.empno and a.ename='박진성';
  
  --ANSI
  select a.ename || '의 매니저는 ' || b.ename || '이다.' 매니저는 
  from emp a join emp b 
- on a.mgr = b.empno;
+ on a.mgr = b.empno and a.ename='박진성';
+ 
+ 
+ select concat(concat(a.ename ,'의 매니저는 '), concat(b.ename , '이다.')) 매니저는 
+ from emp a, emp b 
+ where a.mgr = b.empno and a.ename='박진성';
+ 
+ create or replace view showmgrname 
+ as select concat(concat(a.ename ,'의 매니저는 '), concat(b.ename , '이다.')) 매니저는 
+ from emp a, emp b 
+ where a.mgr = b.empno and a.ename='박진성';
+ 
+ select * from showmgrname;

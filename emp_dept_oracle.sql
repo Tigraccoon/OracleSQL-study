@@ -812,3 +812,77 @@ select * from ( select s.name 학생이름, d.dname 학과, p.name 지도교수
  select * from product_sales_v where company = '샘숭';
  
  
+ 
+ create table dep (
+ id varchar2(10) primary key,
+ name varchar2(15) not null,
+ location varchar2(50)
+ );
+ 
+insert into dep values('10', '영업부', '서울 강남구');
+ 
+ savepoint a;
+ 
+ insert into dep values('20', '회계부', '부산 동래구');
+ 
+ savepoint b;
+ 
+ insert into dep values('30', '개발부', '인천 게양구');
+ 
+ select * from dep;
+ 
+ rollback to a;
+ 
+ commit;
+ 
+ rollback to b;
+ 
+ --undo 의 시간값을 보는 명령어
+ show parameter undo;
+ 
+ --undo_retention : delete, update 후에 commit을 했을 때부터 속성값의 시간(초)까지느 오라클에서 임시로 저장한 데이터로 복구할 수 있음!
+ --Default 속성값은 '900'초로 약 15분 내에는 복구가 가능함. commit 이후에 15분 이내에는 데이터를 복구 가능
+ --시간 변경도 가능한데 변경하려면 
+ alter system set undo_retention = 1500;
+ 
+ show parameter undo;
+ 
+ undo_retention;
+ 
+ select * from tab;
+ 
+ select * from member;
+ 
+ delete from member where userid='park';
+ 
+ commit;
+ 
+ --삭제된 레코드 확인
+ select * from member as of timestamp(systimestamp-interval '15' minute) 
+ where userid='park';
+ 
+ --삭제된 레코드 복구
+ insert into member select * from member as of timestamp(systimestamp-interval '15'minute)
+ where userid='park';
+ 
+ select * from tab;
+
+ select count(*), sum(sal), round(avg(sal),2) 
+ from emp 
+ where deptno=10;
+
+--group by : 그룹핑(그룹으로 짓는다.)
+ select count(*), sum(sal), round(avg(sal),2) 
+ from emp 
+ group by deptno;
+ 
+ 
+ --group by(집계)와 having(집계 결과에서의 조건)
+ 
+ select dname, avg(pay) 
+ from professor p, department d
+ where p.deptno = d.deptno 
+ group by dname 
+ having avg(pay) >= 450;
+ 
+ --이쯤에서 확인하는 SQL 실행 순서 : from(전체 레코드) -> where(행 선택) -> group by(선택된 행을 요약) -> having(요약 결과행 선택) ->select(컬럼 선택) -> order by(정렬) 
