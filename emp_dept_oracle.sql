@@ -886,3 +886,294 @@ insert into dep values('10', '영업부', '서울 강남구');
  having avg(pay) >= 450;
  
  --이쯤에서 확인하는 SQL 실행 순서 : from(전체 레코드) -> where(행 선택) -> group by(선택된 행을 요약) -> having(요약 결과행 선택) ->select(컬럼 선택) -> order by(정렬) 
+ 
+ 
+ 
+ 
+ --서브쿼리
+ 
+ select max(sal) from emp;
+ 
+ select * from emp where sal=800;
+ 
+ --위의 단계를 한 번에 처리 ( ) 로 묶어야 하고 ( ) 먼저 연산
+ 
+ select * from emp 
+ where sal = (select max(sal) from emp);
+ 
+ --테이블의 별칭을 지정하여 구분 가능
+ 
+ select * from emp e1 
+ where e1.sal = (select max(sal) from emp e2);
+ 
+ 
+ --복수행 서브쿼리
+ --all(집합) : 집합의 모든 요소를 만족해야 함. and
+ --any(집합) : 집합의 요소 중 한 개만 만족하면 됌. or
+ 
+ select sal from emp where deptno=30;
+ 
+ select * from emp 
+ where sal > all(select sal from emp where deptno=30);
+ 
+ select * from emp 
+ where sal > any(select sal from emp where deptno=30);
+ 
+ select * from emp 
+ where sal > (select min(sal) from emp where deptno=30);
+ 
+ 
+ --연관성이 있는 서브쿼리(상호관련 서브쿼리) : 서브쿼리와 메인쿼리 사이에 조인을 사용, 반드시 별칭을 사용
+ 
+ --ORACLE
+ select e.ename, e.deptno, d.dname 
+ from emp e, dept d
+ where e.deptno = d.deptno;
+ 
+ --ANSI
+ 
+ select e.ename, e.deptno, d.dname 
+ from emp e join dept d 
+ on e.deptno = d.deptno;
+ 
+ --서브쿼리, 조인을 사용한 검색의 경우
+ 
+ select e.ename, e.deptno, (select d.dname from dept d where e.deptno = d.deptno) departmentName 
+ from emp e;
+ 
+ --부서 평균 급여보다 월급이 적은 사원들을 출력
+ 
+ select e.ename, e.sal, e.deptno, 
+ (select round(avg(sal)) from emp where deptno=e.deptno) 부서평균급여
+ from emp e 
+ where sal < (select avg(sal) from emp where deptno=e.deptno);
+ 
+ --인라인 뷰 : from 절에 위치 
+ --* from절에는 테이블이나 뷰가 위치하는데 이것과 비교해서 서브쿼리에 의해 만들어진 결과값들에 대해서 부르는 명칭. 인라인 뷰와 비교해서 정식으로 만들어진 뷰를 아웃라인 뷰라고 함
+ 
+ select e.empno, e.ename, e.sal 
+ from emp e, (select avg(sal) avgs, max(sal) maxs from emp) e2 --인라인 뷰 (inline view)
+ where e.sal > e2.avgs and e.sal < e2.maxs
+ order by e.sal desc;
+ 
+ 
+ --scalar 서브쿼리(레코드도 하나, 컬럼도 하나)
+ --서브쿼리에 의해 하나의 행, 하나의 컬럼값을 반환하는 서브쿼리. 9i부터 지원
+ --직책이 부장인 사원의 사원명, 부서명을 조회
+ 
+ select ename 사원명, (select dname from dept d where d.deptno=e.deptno) 부서명 
+ from emp e 
+ where job='부장';
+ 
+ 
+ 
+ --number타입은 java에서 float이나 double으로 호출, 최대 38자리 number(전체 자릿수, 소수 이하 자릿수)
+ 
+ create table t_emp (
+ id number(5) not null, 
+ name varchar2(25), 
+ salary number(7,2),
+ phone varchar2(15),
+ dept_name varchar2(25)
+ );
+ 
+ desc t_emp;
+ 
+ select * from tab;
+ 
+ --테이블명 수정하기 : rename A to B
+ 
+ rename t_emp to s_emp;
+ 
+ insert into s_emp values(100,'이상현',2000,'010-2222-2222','개발부');
+ insert into s_emp values(101,'삼상현',3000,'010-3333-3333','총무부');
+ insert into s_emp values(102,'사상현',4000,'010-4444-4444','영업부');
+ 
+ delete from s_emp where id=102;
+ 
+ select * from s_emp;
+ 
+ insert into s_emp (id,name) values(103,'오상현');
+ 
+ --테이블에 컬럼 추가
+ 
+ alter table s_emp add (hire_date date);
+ 
+ --컬럼 수정
+ 
+ alter table s_emp modify (phone varchar2(20));
+ 
+ desc s_emp;
+ 
+ commit;
+ 
+ --컬럼의 이름을 수정
+ 
+ alter table s_emp rename column id to t_id;
+ 
+ select * from s_emp;
+ 
+ --컬럼 삭제
+ 
+ alter table s_emp drop column dept_name;
+ 
+ select * from s_emp;
+ 
+ --**alter는 트렌젝션의 대상이 아니라서 복구할 수도 없다!
+ 
+ --테이블 데이터 조작
+ 
+ update s_emp set hire_date = sysdate 
+ where t_id=100;
+ 
+ update s_emp set hire_date = sysdate 
+ where hire_date is null;
+ 
+ select * from s_emp;
+ 
+ --새로운 데이터 입력
+ 
+ insert into s_emp (t_id, hire_date) values(400,sysdate);
+ 
+ select * from s_emp;
+ 
+ --데이터 삭제
+ 
+ delete from s_emp where t_id=400;
+ 
+ select * from s_emp;
+ 
+ 
+ --제약조건(constraint)
+ --테이블의 해당 컬럼에 조건을 거는 것
+ 
+ --ex) primary key, foreign key, unique(중복되지 않는 pk와 비슷하나 null을 허용), check(값의 범위를 지정), not null
+ 
+ --제약조건을 반영한 테이블 생성
+ -- 사용방법 : constraint 제약조건이름 제약조건
+ create table c_emp (
+ id number(5) constraint c_emp_id_pk primary key,                                           --primary key
+ name varchar2(25) constraint c_emp_name_nn not null,                                   --not null
+ salary number(7,2), 
+ phone varchar2(15) constraint c_emp_phone_ck check(phone like '0000-%'),      -- check
+ dept_id number(7) constraint c_emp_dept_id_fk references dept(deptno)           --foreign key 
+ );
+ 
+ desc c_emp;
+ 
+ --테이블의 제약조건을 확인
+ 
+ select * from user_constraints where table_name= 'C_EMP';
+ 
+ --참고 : constraint_type
+ -- P : primary key
+ -- F : foreign key
+ -- U : unique
+ -- C : check
+ 
+ --해당 DB내의 제약조건 이름들을 볼 때 : 데이터 사전에서 검색됨
+ 
+ select constraint_name from user_constraints;
+ 
+ --제약조건은 수정할 수 없고 삭제만 가능
+ 
+ alter table c_emp drop constraint c_emp_name_nn;
+ 
+ select * from user_constraints where table_name='C_EMP';
+ 
+ --제약조건 추가
+ 
+ alter table c_emp add constraint c_emp_name_un unique(name);
+ 
+ select * from user_constraints where table_name='C_EMP';
+ 
+ --not null 제약조건은 add로 할 수 없고 modify로 가능함
+ 
+ alter table c_emp modify(name varchar2(25) constraint c_emp_name_nn not null);
+ 
+ select * from user_constraints where table_name='C_EMP';
+ 
+ --제약조건 활성화(enable), 비활성화(disable)
+ --disable
+ alter table c_emp disable constraint c_emp_name_nn;
+ 
+ select * from user_constraints where table_name='C_EMP';
+ --enable
+ alter table c_emp enable constraint c_emp_name_nn;
+ 
+ --제약조건 삭제
+ 
+ alter table c_emp drop constraint c_emp_name_nn;
+ 
+ 
+ --실습 (제약조건을 나중에 추가)
+ 
+ drop table c_emp;
+ 
+ create table c_emp (
+ id number(5), 
+ name varchar2(25),
+ salary number(7,2), 
+ phone varchar2(15),
+ dept_id number(7)
+ );
+ 
+ desc c_emp;
+ 
+ insert into c_emp (id,name) values(1,'일철수');
+ insert into c_emp (id,name) values(1,'이철수');
+ insert into c_emp (id,name) values(1,'삼철수');
+ 
+ select * from c_emp;
+ 
+ delete from c_emp;
+ 
+ --id에 제약조건 Pk부여
+ 
+ alter table c_emp add constraint c_emp_id_pk primary key(id);
+ --ORA-0001 : unique constraint (HR.C_EMP_ID_PK) violated : 무결성 제약조건 위반 오류
+ 
+ drop table c_emp;
+ 
+ --check (입력값 체크 조건) 
+ 
+ create table c_emp (
+ id number(5) constraint c_emp_id_pk primary key, 
+ name varchar2(25),
+ salary number(7,2) constraint c_emp_salary_ck check(salary between 100 and 1000), 
+ phone varchar2(15),
+ dept_id number(7)
+ ); 
+ 
+ select * from user_constraints where table_name='C_EMP';
+ 
+ insert into c_emp (id,name,salary) values (1,'kim',500);
+ insert into c_emp (id,name,salary) values (2,'park',1500);
+ 
+ select * from user_constraints where table_name='EMP';
+ select * from emp;
+ select * from user_constraints where table_name='DEPT'; 
+ select * from dept;
+ 
+ insert into emp(empno,ename,deptno) values (9999,'홍길동',50);
+ 
+ drop table c_emp;
+ 
+ --unique 제약조건 (null 허용)
+ 
+ drop table c_emp;
+ 
+ create table c_emp (
+ id number(5) constraint c_emp_id_pk primary key, 
+ name varchar2(25) constraint c_emp_name_un unique, 
+ salary number(7,2), 
+ phone varchar2(15),
+ dept_id number(7) constraint c_emp_dept_id_fk references dept(deptno)
+ ); 
+ 
+ select * from user_constraints where table_name = 'C_EMP';
+ 
+ insert into c_emp (id, name) values (1,'kim');
+ insert into c_emp (id, name) values (2,'kim'); --오류 : name이 unique로 설정돼서
+ 
+ 
