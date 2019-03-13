@@ -125,7 +125,7 @@ select subject_code, subject_name, name, point
 from subject s, professor p
 where s.profno=p.profno;
 
-[문제] 위코드를 ANSI SQL로 변환
+--[문제] 위코드를 ANSI SQL로 변환
 select subject_code, subject_name, name, point
 from subject s join professor p
  on s.profno=p.profno;
@@ -178,7 +178,7 @@ select s.studno, s.name sname, d.deptno, d.dname, p.profno, p.name pname, s.tel,
  from student s, department d, professor p 
  where s.deptno1 = d.deptno 
  and s.profno = p.profno;
- and s.studno = 9711;
+ --and s.studno = 9711;
 
 --9711학생 같은 경우는 지도교수가 아직 배정되지 않아 데이터 출력이 안된다. 따라서 outer join을 해야한다.
 
@@ -1177,3 +1177,847 @@ insert into dep values('10', '영업부', '서울 강남구');
  insert into c_emp (id, name) values (2,'kim'); --오류 : name이 unique로 설정돼서
  
  
+ --view
+ 
+ create view test_v 
+ as 
+ select * from emp;
+ 
+ select * from test_v;
+ 
+ --create로 뷰 생성을 두 번 이상 수행하면 중복 에러가 뜨는데 create or replace로 만들면 에러가 안 뜸..
+ create or replace view test_v 
+ as 
+ select * from emp;
+ 
+ drop view test_v;
+ 
+ create or replace view test_view 
+ as 
+ select e.empno, e.ename, e.deptno, d.dname 
+ from emp e, dept d 
+ where e.deptno = d.deptno;
+ 
+ select * from test_view;
+ 
+ select * from tab;
+ 
+ --뷰의 세부 정보 확인(데이터 사전)
+ select * from user_views;
+ 
+ create or replace view emp_v 
+ as 
+ select empno, ename, hiredate, sal 
+ from emp;
+ 
+ select *from emp_v;
+ 
+ insert into emp_v values (8000,'km',sysdate,70);
+ 
+ delete from emp_v where empno = 8000;
+ 
+ --테이블이 한 개일 때는 괜찮으나 두 개 이상 조인이 들어가면 뷰에서는 문제가 생김
+ --뷰에 레코드를 입력, 삭제, 변경 등은 가능은 하나 권장하지는 않음..
+ --뷰의 주 용도는 select를 처리하기 위한 기능이라서?
+ 
+ --뷰 삭제
+ drop view emp_v;
+ 
+ create or replace view emp_v 
+ as 
+ select empno, ename, hiredate, sal 
+ from emp 
+ with read only;      --읽기 전용 뷰(대부분의 뷰)
+ 
+ insert into emp_v values(8000,'kim',sysdate,700); --읽기 전용 뷰라서 에러
+ 
+ 
+ --index
+ 
+ select rowid,empno,ename from emp;
+ 
+ --index 생성
+ --primary key나 unique 제약조건을 만들면 해당 인덱스가 자동으로 생성
+ 
+ create index  c_emp_name_idx on c_emp(name);
+ 
+ --삭제
+ 
+ drop index c_emp_name_idx;
+ 
+ --full scan : 모든 레코드를 검사
+ --index unique scan : 유일한 값(pk, un 등에 index를 붙일 때)
+ --index range scan : 유일하지 않은 값(동명이인이 있을 수 있는 이름 데이터가 들어가는 컬럼에 index를 붙일 때)
+ 
+ select empno, ename 
+ from emp 
+ where empno=7900;
+ 
+ 
+ select empno, ename from emp where ename = '송기성';
+ 
+ --인덱스 추가
+ create index emp_ename_idx on emp(ename);
+ 
+ --인덱스 삭제
+ drop index emp_ename_idx;
+ 
+ --인덱스 테스트를 위한 테이블 생성
+ 
+ create table emp3 (
+ no number,
+ name varchar2(10),
+ sal number
+ );
+ 
+ --PL/SQL (Procedural Language)
+ 
+ declare 
+i number := 1;
+name varchar(20) := 'kim';
+sal number := 0;
+begin
+while i < 1000000 loop
+if i mod 2 = 0 then
+name := 'kim' || to_char(i);
+sal := 300;
+elsif i mod 3 = 0 then
+name := 'park' || to_char(i);
+
+sal := 400;
+elsif i mod 5 = 0 then
+name := 'hong' || to_char(i);
+sal := 500;
+else
+name := 'shin' || to_char(i);
+sal := 250;
+end if; 
+insert into emp3 values (i,name,sal); 
+i := i + 1; 
+end loop; 
+end;
+/
+
+commit;
+
+select count(*) from emp3;
+
+select * from emp3;
+
+select * from emp3 where name='shin691' and sal > 200;
+
+ --인덱스 추가
+ create index emp_name_idx on emp3(name, sal);
+ 
+ --처리 후 cost가 낮아짐
+ select * from emp3 where name='shin691' and sal > 200;
+ 
+ --데이터 사전에서 인덱스 정보 확인
+ 
+ select * from user_indexes where table_name='EMP3';    --객체 이름은 대문자
+ --nonunique index : 중복값이 있는 인덱스
+ --unique index : primary key, unique 제약조건 컬럼에 적용
+ 
+ --인덱스 삭제
+ drop index emp_name_idx;
+ 
+ --테이블 생성
+ 
+ create table emp4(
+ no number primary key, 
+ name varchar2(10), 
+ sal number
+ );
+ 
+ select * from user_indexes where table_name='EMP4';
+ 
+ select * from emp3;
+ 
+ select * from emp3 where no>900000;
+ 
+ alter table emp3 add constraint emp3_no_pk primary key(no);
+ 
+ --pk처리를 하면 자동으로 인덱스가 생성되어 cost가 감소
+ 
+ --primary key 제약조건 제거(인덱스 제거)
+ 
+ alter table emp3 drop constraint emp3_no_pk;
+ 
+ desc emp3;
+ 
+ --인덱스를 사용하면 order by를 사용 안 해도 자동 정렬
+ 
+ --복합 인덱스 생성
+ 
+ create index emp_nema_idx on emp3(name, sal);
+ 
+ --복합 인덱스는 and연산에서는 사용 가능하지만 or연산에서는 사용하지 않음
+ --and 연산은 앞이 f면 무조건 f라서 검색 속도가 줄어들 수 있지만 or연산은 앞 뒤 모두 검사해야 하므로 쓸 이유가 없음
+ select * from emp3 where name like 'park1111%' and sal > 300;
+ 
+ select * from emp3 where name like 'park1111%' or sal > 300;
+ 
+ 
+ --시퀀스(sequence)
+ --연속적인 숫자값을 자동으로 증가시키는 숫자를 발생시키는 객체 (예 : 은행 번호표) 처럼 후진은 안 됌 MySQL의 auto_increment와 같은 기능
+ 
+ --시퀀스 생성
+ 
+ --create sequence 시퀀스 이름
+ --시퀀스 옵션 : increment by 숫자, 
+ --start whit 숫자, 
+ --maxvalue 숫자, 
+ --minvalue 숫자, 
+ --cycle | nocycle(일련번호 순환 여부 1~10), 
+ --cache | nochach(캐쉬메모리 사용여부, 빠른 처리를 위해 메모리에 저장, 단 cache를 사용하면 서버를 껐다가 키는 등의 일을 하면 100번까지 발급되어싿가 다음 숫자인 101부터 발급)
+ 
+ --시퀀스 호출 함수 (*주의 : 시퀀스 생성 후 nextval을 호출해야 시퀀스에 초기 값이 설정됌) nextval : 다음 값을 반환
+ 
+ create sequence c_emp_seq 
+ increment by 1 
+ start with 103 
+ maxvalue 1000 
+ nocache 
+ nocycle;
+ 
+ select c_emp_seq.nextval from dual;
+ 
+ --currval : 현재 값을 반환
+ select c_emp_seq.currval from dual;
+ 
+ --사용 예
+ 
+ insert into c_emp values(c_emp_seq.nextval, 'aaa', 1000,'3429-001',10);
+ 
+ select * from c_emp;
+ 
+ select nvl(max(id)+1,1) from c_emp;
+ 
+ insert into c_emp values((select nvl(max(id)+1,1) from c_emp), 'test', 3000,'3429-001',10);
+ 
+ 
+ --시퀀스 실습
+ 
+ drop sequence c_emp_seq;
+ 
+ --1부터 시작, 1씩 증가, 최대값 10000, 캐쉬 사용 안 함, 순환 안 함
+ 
+ create sequence c_emp_seq
+ start with 1 
+ increment by 1 
+ maxvalue 100000
+ nocache
+ nocycle;
+ 
+ --시퀀스.nextval : 다음 번호 발급
+ --시퀀스.currval : 현재 번호 발급
+ --dual : 가상 테이블
+ 
+ select c_emp_seq.nextval from dual;
+ select c_emp_seq.currval from dual;
+ select * from c_emp;
+ 
+ delete from c_emp;
+ 
+ --시퀀스를 사용하여 사번 자동 부여, 시퀀스 번호 변경은 불가, drop후 다시 작업
+ 
+ insert into c_emp values(c_emp_seq.nextval, 'kim', 3000, '010-2222-2222', 10);
+ 
+ select * from c_emp;
+ 
+ delete from c_emp where id = 2;
+ 
+ --서브 쿼리를 활용한 번호 발급 (장점 : 시퀀스를 만들지 않아도 되고, 다른 DB에도 쓸 수 있다!)
+ 
+ select max(id)+1 from c_emp;
+ 
+ insert into c_emp values ((select max(id)+1 from c_emp), 'kim1', 3000, '000-1000-1000', 10);
+ 
+ select * from c_emp;
+ 
+ delete from c_emp;
+ 
+ select max(id)+1 from c_emp;
+ 
+ --레코드가 하나도 없을 땐 문제가 된다. 이를 해결하기 위해 nvl 함수를 사용
+ 
+ select nvl(max(id)+1,1) from c_emp;
+ 
+ insert into c_emp values (( select nvl(max(id)+1,1) from c_emp), 'kim4', 4000, '000-3330-1000', 30);
+ 
+ select * from c_emp;
+ 
+ --만약 중간에 서브쿼리를 쓰다가 시퀀스로 쓰면 안 됌. 그 반대도 마찬가지!
+ 
+ 
+ 
+ --고오급 함수
+ --null값 처리 함수
+ --nvl
+ 
+ --where를 사용했을 때
+ select ename 이름, job 직책, sal 급여, comm, sal*0.03 보나쓰 
+ from emp 
+ where comm is null;
+ 
+ --nvl을 사용했을 때
+ select ename 이름, job 직책, sal 급여, comm, nvl(comm, sal*0.03) 보나쓰 
+ from emp;
+ 
+ 
+ --nvl2 :   nvl2(A, B, C) A가 null이 아니면 B, null이면 C
+ 
+ select ename, deptno, sal*nvl2(comm,0.05,0.03) 특별뽀나쓰 
+ from emp;
+ 
+ --nullif : 두 값을 비교하여 같으면 null, 다르면 첫 번째 값을 반환
+ --nullif(비교값1, 비교값2, ....)
+ 
+ select ename, deptno 
+ from emp 
+ where ename like '김%';
+ 
+ --위 수식을 굳~이 NULLIF를 쓰자면
+ select ename, deptno, ltrim(ename,'김')
+ from emp 
+ where nullif(ename, ltrim(ename,'김')) is not null;
+ 
+ 
+ --coalesce(코알레쓰, 더 큰 덩어리로 합치다) : 여러개의 list 중에서 null이 아닌 첫 번째 값을 돌려주는 함수
+ --형식 : colaesce(값1, 값2, 값3, ...) null이 아닌 첫 번째 값
+ 
+ update emp set sal = null where empno = 7788;
+ 
+ select empno 사번, ename 이름, comm 커미션, sal 급여, coalesce(comm, sal, 20) 치환값
+ from emp;
+ 
+ 
+ --decode
+ --소수점이 나오면 제대로 decode 함수가 적용 안 되기 때문에 정수형으로 나와야함
+ --decode(조건, 결과값1, 출력값1, 결과값2, 출력값2, ..., 기본값)
+ update emp set sal = 180 where ename ='황인태';
+ 
+ select ename 이름, sal 급여, decode(trunc(nvl(sal,0)/100), 0, 'E', 1,'D',2,'C',3,'B','A') 급여등급
+ from emp;
+
+
+ create table score (
+ student_no varchar2(20) primary key,
+ name varchar2(20) not null,
+ kor number(3) default 0,
+ eng number(3) default 0,
+ mat number(3) default 0
+ );
+
+ insert into score values(1, 'kim', 90,80,70);
+ insert into score values(2, 'lee', 88,85,75);
+ insert into score values(3, 'park', 99,89,79);
+ insert into score values(4, 'gwak', 100,100,100); 
+ insert into score values(5, 'song', 99,99,90); 
+ insert into score values(6, 'jong', 50,10,30);
+ 
+ select * from score;
+ 
+ select student_no 학번, name 이름, kor 국어점수, eng 영어점수, mat 수학점수, (kor+eng+mat) 총점, round((kor+eng+mat)/3,2) 평균, 
+ decode(trunc((kor+eng+mat)/3/10), 10, 'A', 
+                                                    9, 'A', 
+                                                    8, 'B', 
+                                                    7, 'C', 
+                                                    6, 'D', 
+                                                    'F') 등급 
+ from score;
+ 
+ 
+ --case : decode 함수를 보완하여 대, 소, like 등이ㅡ 비교처리가 가능한 함수(case ~ end)
+ --형식 : case 컬럼이나 값 when 비교값1 then 치환값1 
+                                -- when 비교값2 then 치환값2 
+                                -- when 비교값3 then 치환값3
+                                -- else 기본치 
+        -- end 별칭
+ 
+ select name, position, 
+        case when position ='정교수' then (pay+nvl(bonus,0))*1.1 
+               when position ='조교수' then (pay+nvl(bonus,0))*1.07
+               when position ='전임강사' then (pay+nvl(bonus,0))*1.05
+               else pay+nvl(bonus,0)
+        end 급여
+ from professor
+ order by 급여 desc;
+ 
+ 
+ 
+ --순위를 구하는 함수
+ --rank : order by를 포함한 query문에서 특정 컬럼에 대한 순위를 구하는 함수
+ --rank() : 중복 순위 다음은 해당 개수만큼 건너뛰고 반환
+ --형식
+ --rank() over([partition by 컬럼] order by 컬럼)
+ --dense_rank() : 중복 순위에 상관없이 순차적으로 반환 (동률순위 무시)
+ --row_number() : 중복과 관계없이 무조건 순서대로 반환
+ 
+ --partition by : 순위를 지정하기 위한 컬럼 그룹을 지정함
+ 
+ select deptno 부서번호, ename 이름, sal 급여, rank() over(order by nvl(sal,0) desc) 급여순위 
+ from emp;
+ 
+ select deptno 부서번호, ename 이름, sal 급여, 
+ rank() over(order by nvl(sal,0) desc) 급여순위1, 
+ dense_rank() over(order by nvl(sal,0) desc) 급여순위2, 
+ row_number() over(order by nvl(sal,0) desc) 급여순위3
+ from emp;
+ 
+ select deptno, ename, sal, 
+ rank() over(partition by deptno order by nvl(sal,0) desc) 부서내급여순위
+ from emp;
+ 
+ 
+ 
+ 
+ --PL/SQL
+ --급여 인상 저장 프로시저로 처리
+ 
+ create or replace procedure update_sal(v_empno in number) --이때 in은 생략 가능함 하지만 in을 써줌으로 인해 입력을 표시 가능
+ is --선언부
+ begin --실행부, 모든 SQL + 제어문(if, loop, for)
+    update emp 
+    set sal=sal*1.1 --급여 10% 인상 처리
+    where empno=v_empno; --update문, v_empno는 사원번호 입력용 변수
+ end; --종료
+ /
+ 
+ --저장 프로시져의 실행 방법
+ --execute 저장프로시져 이름(입력값)
+ 
+ select * from emp;
+ 
+ execute update_sal(7369);
+ 
+ execute update_sal(7902);
+ 
+ --java에서 저장 프로시져를 호출할 땐 CallableStatement : {call update_sal(7369)} 형식
+ 
+ --한 줄 메모장 저장 프로시져
+ --테이블
+ create table memo(
+ idx number primary key,
+ writer varchar2(50) not null,
+ memo varchar2(500) not null,
+ post_date date default sysdate
+ );
+ 
+ --시퀀스
+ create sequence memo_seq 
+ start with 1 --시작번호 1
+ increment by 1 --1씩 증가
+ nomaxvalue; --무제한 증가
+ 
+ insert into memo (idx, writer, memo) values (memo_seq.nextval, '홍길동', '메모테슽트1');
+ insert into memo (idx, writer, memo) values (memo_seq.nextval, '김길동', '메모테슽트2');
+ insert into memo (idx, writer, memo) values (memo_seq.nextval, '장길동', '메모테슽트3');
+ 
+ commit;
+ 
+ select * from memo;
+ 
+ --ip주소를 저장할 수 있는 컬럼 추가
+ 
+ alter table memo add (ip varchar2(50));
+ 
+ --저장 프로시저 생성
+ --insert 절이 있는 프로시져 생성
+ 
+ create or replace procedure 
+ memo_insert(v_writer in varchar, v_memo in varchar, v_ip in varchar) 
+ is 
+ begin 
+    insert into memo (idx, writer, memo, ip) 
+    values (memo_seq.nextval, v_writer, v_memo, v_ip);
+ end;
+ /
+ 
+ --저장 프로시져 호출
+ 
+ execute memo_insert ('장길동', '메모테슽트4','192.168.0.15');
+ 
+ select * from memo;
+ 
+ commit;
+ 
+ --데이터 사전 조회(저장 프로시져, 사용자 정의 함수..)
+ 
+ select * from user_source 
+ where name = 'MEMO_INSERT'; --객체 검색은 무조건 대문자로 (table, procedure, sequence..)
+ 
+ 
+ --select절 프로시져 생성
+ 
+ create or replace procedure memo_list(v_row out sys_refcursor) 
+ is 
+ begin 
+    open v_row for --open 커서변수, for~select 문장
+    select idx, writer, memo, post_date, ip 
+    from memo 
+    order by idx desc;
+ end;
+ /
+ 
+ --v_row : 레코드 한 개를 저장할 수 잇는 커서변수
+ --out : 출력매개변수(호출한 곳으로 리턴되는 값으로 처리하는 기능)
+ --in : 입력매개변수
+ --sys_refcursor : 레코드를 한 개씩 조회할 수 있는 자료형(커서), java의 ResultSet과 비슷한 기능
+ 
+ --select절 프로시져의 매개변수 선언
+ --형식 : variable 변수이름 데이터타입 or refcursor
+ variable a refcursor;
+ 
+ --프로시져 호출 및 실행 형식 : execute 프로시져명( :매개변수)
+ --java에서 ?, ?로 값을 받아 처리하는 PrepareStatement와 비슷
+ execute memo_list(:a);
+ 
+ --프로시져 출력
+ print a;
+ 
+ --데이터 사전 조회
+ select * from user_source where name = 'MEMO_LIST';
+ 
+ 
+ --함수 Function
+ 
+ create or replace function fn_update_sal(v_empno in number) --입력매개변수만 허용
+ return number --리턴 자료형
+ is 
+    v_sal number; --지역변수 선언
+ begin 
+    update emp 
+    set sal = sal*1.1 
+    where empno=v_empno;
+    select sal into v_sal 
+    from emp
+    where empno=v_empno;
+    return v_sal;  --인상된 금액을 리턴
+ end;
+ /
+ 
+ commit;
+ 
+ select * from emp;
+ 
+ --함수 실행
+ 
+ select fn_update_sal(7369) from dual; 
+ --위 쿼리는 에러 발생 쿼리문 안에 DML(Update, Delete, Insert)이 들어있다는.. select문 안에 DML이 들어있으면 안 됌
+ --변수와 대입문을 활용해 처리
+ 
+ var salary number; --변수 생성
+ execute :salary := fn_update_sal(7369); --변수에 함수 대입  -  A := B   는 B의 값을 A에 대입, ' := '대입문 만약 A=B로 하면 A와 B는 같다는 뜻
+ print salary; --변수로 출력 이런 변수는 바인딩 변수라고도 함(리턴 값을 받는 변수)
+ 
+ select * from emp;
+ 
+ --예) 급여의 200%를 특별 보너스로 출력
+ 
+ create or replace function cal_bonus(v_empno in emp.empno%type) --테이블명.튜플명%타입 = 타입을 지정할 때 테이블의 타입을 가져옴
+ return number 
+ is 
+    v_sal number(7,2); 
+ begin 
+    select sal into v_sal 
+    from emp 
+    where empno=v_empno;
+    return (v_sal * 2);
+ end;
+ /
+ 
+ commit;
+ 
+ --바인드변수 선언
+ 
+ variable var_res number;
+ 
+ --저장함수 실행
+ execute :var_res := cal_bonus(7521);
+ 
+ --출력
+ print var_res;
+ 
+ select * from emp where empno=7521;
+ 
+ --출력문을 print 말고 SQL문으로도 출력 가능
+ 
+ select sal, cal_bonus(7521) 특별보너스
+ from emp 
+ where empno=7521;
+ 
+ 
+ 
+ --PL/SQL 제어문
+ --%type
+ 
+ create or replace procedure emp_info(p_empno in emp.empno%type) 
+ is --변수 선언
+    v_empno emp.empno%type;
+    v_ename emp.ename%type;
+    v_sal emp.sal%type;
+ begin --실행문
+    --select 필드 into 변수 : 필드의 값을 변수에 저장
+    select empno, ename, sal into v_empno, v_ename, v_sal
+    from emp 
+    where empno = p_empno;
+     --dbms_output.put_line(출력문) : java의 sysout과 같은 느낌
+     --dbms_output 패키지의 put_line함수 호출
+      dbms_output.put_line('사번 : ' || v_empno); 
+      dbms_output.put_line('이름 : ' || v_ename);
+      dbms_output.put_line('급여 : ' || v_sal);
+ end;
+ /
+ 
+ set serveroutput on;   --서버의 dbms_output 패키지 enable
+ 
+ execute emp_info(7369);
+ 
+ 
+ 
+ --if문
+ --형식
+ -- if 조건 then
+ -- statements
+ -- elsif 조건 then
+ -- statements
+ -- esle 
+ -- statements
+ -- end if;
+ 
+ create or replace procedure dept_search (p_empno in number) 
+ is
+    v_deptno number;
+ begin 
+    select deptno into v_deptno 
+    from emp 
+    where empno = p_empno;
+        dbms_output.put_line('부서코드 : ' || v_deptno);
+    if v_deptno = 10 then
+        dbms_output.put_line('경리팀 사원입니다.');
+    elsif v_deptno = 20 then
+        dbms_output.put_line('연구팀 사원입니다.');
+    elsif v_deptno = 30 then 
+        dbms_output.put_line('총무팀 사원입니다.');
+    else 
+        dbms_output.put_line('기타부서 사원입니다.');
+    end if;
+ end;
+ /
+ 
+ execute dept_search(7369);
+ 
+ select empno, ename, dname 
+ from emp e, dept d 
+ where e.deptno = d.deptno and empno = 7369;
+ --위 SQL을 procedure로 만든 것.
+ 
+ 
+ 
+ 
+ --반복문
+ --FOR 루프
+ --형식 : 
+ -- for index in [reverse] 시작값... end값 loop
+ --     statements
+ -- end loop
+ 
+ --무명블록
+ declare --선언부
+    --사용자 정의 자료형, type 자료형 이름 is ...
+    type ename_table is table of emp.ename%type index by binary_integer;
+    --급여만 저장할 테이블 생성
+    type sal_table is table of emp.sal%type index by binary_integer;
+    ename_tab ename_table;-- 변수명(ename_tab) 자료형 (ename_table) 마치 자바의 객채와 같이..
+    sal_tab sal_table; 
+    i binary_integer := 0; --i에 0을 대입
+ begin --실행부
+    --for 커서변수 in 집합 loop
+    for emp_row in (select ename, sal from emp) loop 
+    i := i+1;   --i값 증가
+    ename_tab(i) := emp_row.ename; -- 테이블의 i인덱스에 값 저장
+    sal_tab(i) := emp_row.sal;
+ end loop;
+ --for 인덱스변수 in 시작..종료 loop
+ for cnt in 1 .. i loop
+    dbms_output.put('이름 : ' || ename_tab(cnt) || ', ' );
+    dbms_output.put_line('급여 : ' || sal_tab(cnt));
+ end loop;
+ end;
+ /
+ 
+ set serveroutput on;
+    
+    
+ --Loop
+ declare
+    v_cnt number := 9010;
+ begin
+    loop
+        v_cnt := v_cnt+1;
+        insert into emp (empno, ename, hiredate) values (v_cnt, ' test ' || v_cnt, sysdate);
+        exit when v_cnt >= 9100;
+    end loop;
+    --dbms_output.put('개의 레코드가 입력되었습니다.');
+ end;
+ /
+ 
+ select * from emp;
+ 
+ delete from emp where empno >= 9050;
+ 
+ --조건이 true일때 반복되는 루프
+ declare 
+    cnt number := 9050;
+ begin
+    while cnt < 9060 loop
+        insert into emp (empno, ename, hiredate) values (cnt, 'test' || cnt, sysdate);
+        cnt := cnt+1;
+    end loop;
+    dbms_output.put_line(cnt-9050 || ' 개의 레코드가 입력되었습니다.');
+ end;
+ /
+ 
+ select * from emp;
+ 
+ 
+ --커서(Corsor)
+ --암시적 커서
+ --SQL%ROWCOUNT : 해당 SQL문에 영향을 받는 행의 수
+ --SQL%FOUND : 해당 SQL 영향을 받는 행의 수가 1개 이상일 경우 TRUE
+ --SQL%NOTFOUND : 해당 SQL 영향을 받는 수가 없을 경우 TRUE
+ --SQL%ISOPEN : 항상 FALSE, 암시적 커서가 열려있는지 여부 검색
+ --커서 열기(OPEN)
+ --OPEN corsor_name;
+ --커서 패치(FETCH) : 현재 레코드를 OUTPUT 변수에 저장(한 라인씩, 커서의 SELECT문의 컬럼수와 OUTPUT변수의 수와 데이터 타입이 같아야함)
+ --FETCH cursor_name INTO variable1, variable2;
+ --커서 닫기(CLOSE) : 사용을 마친 커서는 반드시 닫아야.., 커서를 닫은 후 FETCH 할 수 없음
+ --CLOSE corsor_name;
+ 
+ create or replace procedure cursor_test(p_empno in number)
+ is
+    v_sal number;
+    v_update_row number;
+    v_update_sal number;
+    v_name varchar2(50);
+ begin
+    select sal into v_sal from emp where empno = p_empno;
+    if sql%found then
+        dbms_output.put_line('급여 : ' || v_sal);
+    end if;
+    update emp set sal = sal*1.1 where empno = p_empno;
+    select sal into v_update_sal from emp where empno = p_empno;
+    select ename into v_name from emp where empno = p_empno;
+    v_update_row := sql%rowcount;
+    dbms_output.put_line('급여가 인상된 사원 수 : ' || v_update_row);
+    dbms_output.put_line('급여가 인상된 사원 이름 : ' || v_name);
+    dbms_output.put_line('인상된 급여 : ' || v_update_sal);
+    exception --예외처리
+        when NO_DATA_FOUND then 
+            dbms_output.put_line('잘못된 사번입니다.');
+        when others then
+            dbms_output.put_line('[SYSTEM] 에러'); 
+ end;
+ /
+ 
+ select * from emp;
+ 
+ execute cursor_test(7499);
+ 
+ --대표적 oracle 예외상황 : 
+ --too_many_rows : 너무 많은 행이 리턴될 경우
+ --invalid_cursor : 잘못된 커서 사용
+ --zero_divide : 0으로 나눌 경우
+ --dup_val_on_index : unique 제약 조건을 위반할 경우
+ 
+ 
+ --명시적 커서
+ --cursor 커서변수이름 is select문장(레코드 집합을 한 개의 레코드 씩 읽을 때 사용)
+ 
+ create or replace procedure cursor_test2(v_deptno number)
+ is
+    cursor dept_avg is 
+    select dname, count(empno) cnt, round(avg(sal),1) salary 
+    from emp e, dept d 
+    where e.deptno = d.deptno
+    group by dname;
+        v_name varchar(50);
+        emp_cnt number;
+        sal_avg number;
+ begin 
+    open dept_avg;  --커서 오픈
+    fetch dept_avg into v_name, emp_cnt, sal_avg;   --레코드에 저장
+    dbms_output.put_line('부서명 : ' || v_name);
+    dbms_output.put_line('사원수 : ' || emp_cnt);
+    dbms_output.put_line('평균급여 : ' || sal_avg);
+    close dept_avg; --커서 닫기
+ end;
+ /
+ 
+ execute cursor_test2(10);
+ 
+ --위 프로시져에 루프
+ 
+ create or replace procedure cursor_test3 
+ is 
+    cursor dept_avg is
+    select dname, count(empno) cnt, round(avg(sal),1) salary 
+    from emp e, dept d 
+    where e.deptno = d.deptno
+    group by dname;
+ begin 
+    for emp_row in dept_avg loop
+        dbms_output.put_line('부서명 : ' || emp_row.dname);
+        dbms_output.put_line('사원수 : ' || emp_row.cnt);
+        dbms_output.put_line('평균급여 : ' || emp_row.salary);
+    end loop;
+ end;
+ /
+ 
+ execute cursor_test3;
+ 
+ 
+ --Trigger 트리거 : DB에서 연쇄적인 동작을 정의
+ --프로시져는 사용자가 직접 execute해야하지만 트리거는 테이블의 데이터가 변경 될 때 자동으로 수행되며 사용자가 직접 수행 불가능
+ --insert update delete 문이 실행 될 때 묵시적으로 수행되는 프로시져
+ --테이블에만 정의 가능. 즉 view에는 사용 불가능
+ --before trigger : dml 실행 전 실행
+ --after trigger : dml 실행 후 실행
+ --for each row : 행 트리거 : 컬럼의 각 행의 변화가 생길 때 마다 실행, 문장 트리거 : 1회만 실행
+ 
+ create or replace trigger sum_trigger 
+ after --전이면 before
+    insert or update or delete on emp   --emp에서 dml 작업 후 실행
+ declare
+    avg_sal number;
+ begin --자동으로 호출
+    select avg(sal) into avg_sal from emp;
+    dbms_output.put_line('급여 평균 : ' || avg_sal);
+ end;
+ /
+ 
+
+ --현재 평균 급여 400
+ select avg(sal) from emp;
+ 
+ --dml 실행
+ insert into emp (empno, ename, hiredate, sal) values (3002, '홍철수', sysdate, 500);
+ 
+ update emp set sal=700 where empno = 3002;
+ 
+ --delete from emp where empno = 3002;
+ 
+ 
+ commit; 
+ 
+ 
+ --백업(exp), 복원(imp)
+ 
+ select * from lecture;
+ 
+ drop table lecture;
+ 
+ select * from lecture;
+ 
+ commit;
