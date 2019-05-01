@@ -1,11 +1,11 @@
 drop table member;
 
 create table member(
-    userid varchar2(50) not null primary key,
-    passwd varchar2(50) not null,
-    name varchar2(50) not null,
+    userid varchar2(100) not null primary key,
+    passwd varchar2(100) not null,
+    name varchar2(100) not null,
     email varchar2(100),
-    hp varchar2(50),
+    hp varchar2(100),
     zipcode varchar2(10),
     address1 varchar2(300),
     address2 varchar2(300),
