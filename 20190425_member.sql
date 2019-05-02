@@ -28,3 +28,11 @@ update member set hp='010-1111-1111', zipcode='11111', address1='서울시', addres
 update member set hp='010-2222-2222', zipcode='22222', address1='경기도', address2='경기동' where userid='park';
 update member set hp='010-3333-3333', zipcode='33333', address1='인천시', address2='인천동' where userid='hong';
 
+
+select * from member;
+
+select * from member where userid='kim'
+and passwd=PACK_ENCRYPTION_DECRYPTION.FUNC_ENCRYPT('1234');
+
+select userid, PACK_ENCRYPTION_DECRYPTION.FUNC_DECRYPT(passwd) from
+member;
