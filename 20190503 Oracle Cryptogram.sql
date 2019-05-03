@@ -1,26 +1,15 @@
---1. sys ê³„ì •ìœ¼ë¡œ ë¡œê·¸ì¸í•˜ì—¬ ì‚¬ìš©ìì—ê²Œ ì•”í˜¸í™”, ë³µí˜¸í™” ê¶Œí•œ ë¶€ì—¬
-sqlplus / as sysdba  ë˜ëŠ” ì ‘ì†ëœ ìƒíƒœì—ì„œëŠ” conn / as sysdba
---GRANT EXECUTE ON DBMS_CRYPTO TO ì‚¬ìš©ìì•„ì´ë””
-GRANT EXECUTE ON DBMS_CRYPTO TO JAVA;
-
-
---2. java ê³„ì • ë˜ëŠ” hrê³„ì •ìœ¼ë¡œ ë¡œê·¸ì¸í•˜ì—¬ ì•”í˜¸í™”+ë³µí˜¸í™”ë¥¼ ìœ„í•œ íŒ¨í‚¤ì§€ ì„ ì–¸
-conn java/java1234
-
---[SQL Developerì—ì„œ ì‘ì—…]
--- KEYê°’ì€ ì„ì˜ë¡œ ì§€ì •í•˜ë˜ ì•”í˜¸í™”,ë³µí˜¸í™”ì— ê°ê° ë™ì¼í•˜ê²Œ ì§€ì •
 CREATE OR REPLACE PACKAGE PACK_ENCRYPTION_DECRYPTION
 IS
-FUNCTION FUNC_ENCRYPT -- ì•”í˜¸í™”ë¥¼ ìœ„í•œ í•¨ìˆ˜
+FUNCTION FUNC_ENCRYPT -- ¾ÏÈ£È­¸¦ À§ÇÑ ÇÔ¼ö
 (V_INPUT_STRING IN VARCHAR2, KEY_DATA IN VARCHAR2:='java1234$!')
 RETURN RAW;
-FUNCTION FUNC_DECRYPT -- ë³µí˜¸í™”ë¥¼ ìœ„í•œ í•¨ìˆ˜
+FUNCTION FUNC_DECRYPT -- º¹È£È­¸¦ À§ÇÑ ÇÔ¼ö
 (V_INPUT_STRING IN VARCHAR2, KEY_DATA IN VARCHAR2:='java1234$!')
 RETURN VARCHAR2;
 END PACK_ENCRYPTION_DECRYPTION;
 /
 
---3. íŒ¨í‚¤ì§€ êµ¬í˜„
+--3. ÆĞÅ°Áö ±¸Çö
 CREATE OR REPLACE PACKAGE BODY PACK_ENCRYPTION_DECRYPTION
 IS
 FUNCTION FUNC_ENCRYPT
@@ -32,10 +21,10 @@ V_ORIGINAL_RAW RAW(64);
 V_KEY_DATA_RAW RAW(64);
 ENCRYTED_RAW RAW(64);
 BEGIN
--- INPUTê°’ì„ RAW íƒ€ì…ìœ¼ë¡œ ë³€ê²½
+-- INPUT°ªÀ» RAW Å¸ÀÔÀ¸·Î º¯°æ
 V_ORIGINAL_RAW := UTL_I18N.STRING_TO_RAW(V_INPUT_STRING,
 'AL32UTF8');
---í‚¤ ë˜í•œ RAW íƒ€ì…ìœ¼ë¡œ ë³€ê²½.
+--Å° ¶ÇÇÑ RAW Å¸ÀÔÀ¸·Î º¯°æ.
 V_KEY_DATA_RAW := UTL_I18N.STRING_TO_RAW(KEY_DATA, 'AL32UTF8');
 ENCRYTED_RAW := DBMS_CRYPTO.ENCRYPT(
 SRC => V_ORIGINAL_RAW,
@@ -66,12 +55,12 @@ END FUNC_DECRYPT;
 END PACK_ENCRYPTION_DECRYPTION;
 /
 
---4. java ê³„ì •,hrê³„ì •ìœ¼ë¡œ ë¡œê·¸ì¸í•˜ì—¬ íšŒì› í…Œì´ë¸” ìƒì„±(ê¸°ì¡´ í…Œì´ë¸”ì€ ì‚­ì œ)
-drop table member;
+--4. java °èÁ¤,hr°èÁ¤À¸·Î ·Î±×ÀÎÇÏ¿© È¸¿ø Å×ÀÌºí »ı¼º(±âÁ¸ Å×ÀÌºíÀº »èÁ¦)
+drop table member_oracle;
 
-create table member (
+create table member_oacle (
 userid varchar2(50) not null primary key,
-passwd varchar(64) not null, --varchar2ê°€ ì•„ë‹Œ varcharë¡œ ì„¤ì •
+passwd varchar(64) not null, --varchar2°¡ ¾Æ´Ñ varchar·Î ¼³Á¤
 name varchar2(50) not null,
 email varchar2(50),
 hp varchar2(50),
@@ -82,24 +71,30 @@ join_date date default sysdate
 );
 
 
---5. í…Œì´ë¸”ì— ìë£Œ ì…ë ¥
-insert into member (userid,passwd,name) values
-('kim',PACK_ENCRYPTION_DECRYPTION.FUNC_ENCRYPT('1234'),'ê¹€ê³¼ì¥');
-insert into member (userid,passwd,name) values
-('park',PACK_ENCRYPTION_DECRYPTION.FUNC_ENCRYPT('1234'),'ìµœë¶€ì¥');
-insert into member (userid,passwd,name) values
-('hong',PACK_ENCRYPTION_DECRYPTION.FUNC_ENCRYPT('1234'),'í™ì‹¤ì¥');
+--5. Å×ÀÌºí¿¡ ÀÚ·á ÀÔ·Â
+insert into member_oacle (userid,passwd,name) values
+('kim',PACK_ENCRYPTION_DECRYPTION.FUNC_ENCRYPT('1234'),'±è°úÀå');
+insert into member_oacle (userid,passwd,name) values
+('park',PACK_ENCRYPTION_DECRYPTION.FUNC_ENCRYPT('1234'),'ÃÖºÎÀå');
+insert into member_oacle (userid,passwd,name) values
+('hong',PACK_ENCRYPTION_DECRYPTION.FUNC_ENCRYPT('1234'),'È«½ÇÀå');
 
---6. íšŒì›ì •ë³´ í™•ì¸
-select * from member;
+--6. È¸¿øÁ¤º¸ È®ÀÎ
+select * from member_oacle;
 
---7. ë¡œê·¸ì¸ í…ŒìŠ¤íŠ¸
-select * from member where userid='kim'
+--7. ·Î±×ÀÎ Å×½ºÆ®
+select * from member_oacle where userid='kim'
 and passwd=PACK_ENCRYPTION_DECRYPTION.FUNC_ENCRYPT('1234');
 
-select * from member where userid='kim' and passwd='1234'; --ì•ˆë‚˜ì˜´
+SELECT * FROM member_oacle WHERE userid='kim' AND passwd=PACK_ENCRYPTION_DECRYPTION.FUNC_ENCRYPT('1234');
 
---8. ë³µí˜¸í™” í…ŒìŠ¤íŠ¸
+select * from member_oacle where userid='kim' and passwd='1234'; --¾È³ª¿È
+
+--8. º¹È£È­ Å×½ºÆ®
 select userid, PACK_ENCRYPTION_DECRYPTION.FUNC_DECRYPT(passwd) from
-member;
+member_oacle;
 
+
+delete from member_oacle;
+
+commit;
