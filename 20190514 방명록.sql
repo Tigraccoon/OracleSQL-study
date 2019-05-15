@@ -30,7 +30,7 @@ insert into guestbook (idx, name, email, passwd, content) values
 select * from guestbook; 
 commit;
 --비밀번호 체크
-select count(*) from guestbook where idx=1 and passwd='123'; 
+select count(*) from guestbook where idx=1 and passwd='1234'; 
 
 -- 방명록 수정/삭제 화면
 select * from GUESTBOOK where idx=1; -- 수정
