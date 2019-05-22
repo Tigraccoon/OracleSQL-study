@@ -37,7 +37,7 @@ commit;
 --3번 게시물의 첨부파일 이름
 select filename
 from board
-where num=3;
+where num=5;
 
 --다운로드수 증가 처리
 update board set down=down+1 where num=3; 
@@ -162,4 +162,16 @@ commit;
 SELECT num, writer, subject, reg_date, readcount,filename,filesize,down 
 			FROM board 
 			ORDER BY num desc;
+            
+ SELECT *
+			FROM (
+ 		 	select A.*, rownum as rn 
+			from (
+      			select num,writer,subject,reg_date,readcount,filename,filesize,down
+			,(select count(*) from board_comment where board_num=num) comment_count
+      				from board
+      				order by num DESC
+  				) A
+			)
+		where rn between 3 and 10;
 
