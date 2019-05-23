@@ -83,3 +83,8 @@ SELECT * FROM project_jsp_user WHERE userid='kim' AND pwd=PACK_ENCRYPTION_DECRYP
 
 --º¹È£È­
 select userid, PACK_ENCRYPTION_DECRYPTION.FUNC_DECRYPT(pwd) from project_jsp_user;
+
+
+--id check
+SELECT userid FROM project_jsp_user
+			WHERE userid='kim';
