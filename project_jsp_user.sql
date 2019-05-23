@@ -86,5 +86,13 @@ select userid, PACK_ENCRYPTION_DECRYPTION.FUNC_DECRYPT(pwd) from project_jsp_use
 
 
 --id check
-SELECT userid FROM project_jsp_user
+SELECT name FROM project_jsp_user
 			WHERE userid='kim';
+            
+SELECT name FROM project_jsp_user
+			WHERE email='abc@abc.com';
+
+UPDATE project_jsp_user 
+			SET pwd=PACK_ENCRYPTION_DECRYPTION.FUNC_ENCRYPT('1234'),name='±è´ë¸®',hp='1234-1111',zipcode='1234',address1='¼ÛÆÄ´ë·Î',address2='Áß¾Ó' 
+			WHERE userid='kim';
+            
