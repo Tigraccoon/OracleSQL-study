@@ -21,6 +21,11 @@ filesize number default 0,
 down number default 0 --다운로드 횟수
 );
 
+--필드 추가
+alter table board add show char(1) default 'y';
+
+update board set show='n' where num=3;
+
 select * from board;
 
 insert into board
@@ -106,12 +111,13 @@ delete from board_comment;
 
 --비밀번호 체크(14번 게시물의 비밀번호 확인) 
 select passwd from board
-where num=14 and passwd='222';
+where num=14 and passwd='1234';
 
---14번 게시물 수정 update board
+--14번 게시물 수정 
+update board
 set  writer='kim', subject='제목...', content='	'
-where num=14;
-select * from board where num=14;
+where num=1;
+select * from board where num=11;
 
 --affected rows : 영향을 받은 행의 수
 --	insert,delete,update
