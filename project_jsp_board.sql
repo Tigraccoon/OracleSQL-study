@@ -79,12 +79,17 @@ delete from project_jsp_board;
 insert into project_jsp_board(num,writer,subject,content,ip)
     values((select nvl(max(num)+1,1) from project_jsp_board),'kim','제목','본문','123.111.111.111');
 
+insert into project_jsp_board(num,writer,subject,content,ip,show)
+    values((select nvl(max(num)+1,1) from project_jsp_board),'kim','제목','본문','123.111.111.111','s');
+
+select * from project_jsp_board;
+
 --댓글 테이블
 drop table project_jsp_comment;
 
 create table project_jsp_comment (
 c_num number not null primary key, --댓글 일련번호 
-board_num number not null references board(num), --Foreign Key 
+board_num number not null references project_jsp_board(num), --Foreign Key 
 c_writer varchar2(50) not null references project_jsp_user(userid),
 c_content clob not null, --큰내용을 처리할 수 있게 clob을 써본다.
 c_ref number not null,    --댓글 그룹
@@ -99,12 +104,13 @@ insert into project_jsp_comment(c_num,board_num,c_writer,c_content,c_ref,c_step,
     (select nvl(max(c_num)+1,1) from project_jsp_comment),0,1);
 
 commit;
-
+select count(*) from project_jsp_comment where board_num=c_num;
+select * from project_jsp_board;
  SELECT *
 			FROM (
  		 	select A.*, rownum as rn 
 			from (
-      			select num,writer,subject,reg_date,readcount,filename,filesize,down
+      			select num,writer,subject,reg_date,readcount,filename,filesize,down,show
 			,(select count(*) from project_jsp_comment where board_num=num) comment_count
       				from project_jsp_board
       				order by num DESC
