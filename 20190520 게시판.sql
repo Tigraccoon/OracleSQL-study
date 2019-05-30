@@ -69,6 +69,7 @@ content clob not null, --큰내용을 처리할 수 있게 clob을 써본다.
 reg_date date default sysdate
 );
 
+select * from board_comment;
 --1번 게시물에 댓글 추가  (만약 100번에 대한 글이 없으면 에러나기 때문에 foreign key설정했었음)
 insert into board_comment
 (comment_num,board_num,writer,content) values
