@@ -3,7 +3,7 @@ drop table memo;
 create table memo (
 idx number not null primary key,
 writer varchar2(50) not null,
-memo varchar2(200) not null,
+memo clob,
 post_date date default sysdate
 );
 

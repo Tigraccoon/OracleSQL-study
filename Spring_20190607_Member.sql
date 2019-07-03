@@ -9,7 +9,8 @@ join_date date default sysdate
 
 insert into member (userid,passwd,name,email)
 values ('kim','1234','±èÃ¶¼ö','kim@gmail.com');
-
+insert into member (userid,passwd,name,email)
+values ('park','1234','±èÃ¶¼ö','kim@gmail.com');
 select * from member;
 
 select count(*) from member
